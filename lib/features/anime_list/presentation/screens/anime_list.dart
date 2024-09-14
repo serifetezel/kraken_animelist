@@ -602,10 +602,7 @@ class _AnimeListState extends State<AnimeList> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       buildCardTitle(index, context),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10.0),
-                        child: buildCardScore(index),
-                      ),
+                      buildScoreEpisodes(index),
                     ],
                   ),
                 ),
@@ -637,7 +634,42 @@ class _AnimeListState extends State<AnimeList> {
           ignoreGestures: true,
           onRatingUpdate: (rating) {},
         ),
-        Text('${data[index]['score']} / 10')
+        Text(
+          '${data[index]['score']} / 10',
+        )
+      ],
+    );
+  }
+
+  Padding buildScoreEpisodes(int index) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          buildScore(index),
+          Text(
+            'Episodes: ${data[index]['episodes']}',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Row buildScore(int index) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.star,
+          color: Colors.amber,
+        ),
+        Text(
+          '${data[index]['score']} / 10',
+          style: Theme.of(context).textTheme.titleSmall,
+        )
       ],
     );
   }
