@@ -1,7 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
 
 class AnimeDetail extends StatefulWidget {
@@ -1551,7 +1550,7 @@ class _AnimeDetailState extends State<AnimeDetail> {
                     borderRadius: BorderRadius.circular(8)),
                 margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
                 padding: const EdgeInsets.all(5),
-                child: Text(widget.genres?[index]['name']),
+                child: Text(widget.genres?[index].name),
               );
             }),
       ),
