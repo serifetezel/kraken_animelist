@@ -1,12 +1,15 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
 import 'package:kraken_animelist/features/anime_detail/presentations/screens/anime.detail.dart';
+import 'package:kraken_animelist/features/anime_list/presentation/cubit/anime_cubit.dart';
 
 import '../../data/models/anime.dart';
-import '../../data/services/api_service.dart';
-import 'package:chopper/chopper.dart' as Chopper;
 
 class AnimeList extends StatefulWidget {
   const AnimeList({super.key});
@@ -16,36 +19,26 @@ class AnimeList extends StatefulWidget {
 }
 
 class _AnimeListState extends State<AnimeList> {
-  ApiService? service;
-
-  List<Anime> animeList = <Anime>[];
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
-    service = ApiService.create();
-
+    context.read<AnimeCubit>().getAnimeList();
+    scrollController.addListener(_loadMoreData);
     super.initState();
   }
 
-  @override
-  didChangeDependencies() async {
-    super.didChangeDependencies();
-    animeList = await getAnimeList();
-    setState(() {});
+  void _loadMoreData() {
+    if (scrollController.position.atEdge &&
+        scrollController.position.pixels != 0) {
+      context.read<AnimeCubit>().getAnimeList();
+    }
   }
 
-  Future<List<Anime>> getAnimeList() async {
-    final Chopper.Response animeResponse = await service!.getAnimeList(1, 20);
-
-    if (animeResponse.isSuccessful) {
-      final animeObjectList = animeResponse.body['data'] as List;
-      final animes = animeObjectList
-          .map((singleJsonObject) => Anime.fromJson(singleJsonObject))
-          .toList();
-      return animes;
-    } else {
-      return <Anime>[];
-    }
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -55,19 +48,97 @@ class _AnimeListState extends State<AnimeList> {
       appBar: appBar(),
       body: SafeArea(
         top: true,
-        child: ListView.builder(
-          itemCount: animeList.length,
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return animeCard(context, index);
+        child: BlocConsumer<AnimeCubit, AnimeState>(
+          listener: (BuildContext context, state) {},
+          builder: (BuildContext context, Object? state) {
+            if (state is AnimeInitial ||
+                (state is AnimeLoading && state.isFirstFetch)) {
+              return loadingIndicator();
+            }
+
+            List<Anime> animes = [];
+            bool isLoading = false;
+            bool isLastPage = false;
+
+            if (state is AnimeLoading) {
+              animes = state.oldAnimes;
+              isLoading = true;
+              isLastPage = state.isLastPage;
+            } else if (state is AnimeLoaded) {
+              animes = state.animes;
+              isLastPage = state.isLastPage;
+            }
+
+            return ListView.builder(
+              controller: scrollController,
+              itemCount: animes.length + (isLoading || isLastPage ? 1 : 0),
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                if (index < animes.length) {
+                  return animeCard(context, animes[index]);
+                } else {
+                  Timer(const Duration(milliseconds: 30), () {
+                    scrollController
+                        .jumpTo(scrollController.position.maxScrollExtent);
+                  });
+
+                  return isLastPage
+                      ? allAnimesListed()
+                      : const Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 10,
+                          ),
+                          child: Center(
+                            child: SizedBox(
+                              height: 30,
+                              width: 30,
+                              child: CupertinoActivityIndicator(),
+                            ),
+                          ),
+                        );
+                }
+              },
+            );
           },
         ),
       ),
     );
   }
 
-  SizedBox animeCard(BuildContext context, int index) {
+  Align allAnimesListed() {
+    return Align(
+      alignment: Alignment.center,
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        margin: const EdgeInsets.all(10.0),
+        decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade200,
+                offset: const Offset(0.0, 1.0),
+                blurRadius: 4.0,
+              ),
+            ],
+            color: Colors.white,
+            border: Border.all(width: .5, color: Colors.grey),
+            borderRadius: const BorderRadius.all(Radius.circular(10))),
+        child: const Text('All animes are listed'),
+      ),
+    );
+  }
+
+  Center loadingIndicator() {
+    return const Center(
+      child: SizedBox(
+        height: 50,
+        width: 50,
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  SizedBox animeCard(BuildContext context, Anime anime) {
     return SizedBox(
       height: context.calculateHeight(7),
       width: context.calculateWidth(1),
@@ -76,14 +147,7 @@ class _AnimeListState extends State<AnimeList> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AnimeDetail(
-                  id: animeList[index].malId,
-                  imageUrl: animeList[index].images.jpg.largeImageUrl,
-                  title: animeList[index].title,
-                  ratingScore: animeList[index].score,
-                  genres: animeList[index].genres,
-                  synopsis: animeList[index].synopsis,
-                  episodesCount: animeList[index].episodes),
+              builder: (context) => AnimeDetail(anime: anime),
             ),
           );
         },
@@ -94,7 +158,7 @@ class _AnimeListState extends State<AnimeList> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              buildCardImage(context, index),
+              buildCardImage(context, anime),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -102,8 +166,8 @@ class _AnimeListState extends State<AnimeList> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      buildCardTitle(index, context),
-                      buildScoreEpisodes(index),
+                      buildCardTitle(context, anime),
+                      buildScoreEpisodes(anime),
                     ],
                   ),
                 ),
@@ -115,15 +179,15 @@ class _AnimeListState extends State<AnimeList> {
     );
   }
 
-  Padding buildScoreEpisodes(int index) {
+  Padding buildScoreEpisodes(Anime anime) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          buildScore(index),
+          buildScore(anime),
           Text(
-            'Episodes: ${animeList[index].episodes}',
+            'Episodes: ${anime.episodes}',
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ],
@@ -131,7 +195,7 @@ class _AnimeListState extends State<AnimeList> {
     );
   }
 
-  Row buildScore(int index) {
+  Row buildScore(Anime anime) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -141,24 +205,24 @@ class _AnimeListState extends State<AnimeList> {
           color: Colors.amber,
         ),
         Text(
-          '${animeList[index].score} / 10',
+          '${anime.score} / 10',
           style: Theme.of(context).textTheme.titleSmall,
         )
       ],
     );
   }
 
-  AutoSizeText buildCardTitle(int index, BuildContext context) {
+  AutoSizeText buildCardTitle(BuildContext context, Anime anime) {
     return AutoSizeText(
-      animeList[index].title,
+      anime.title,
       maxLines: 2,
       style: Theme.of(context).textTheme.titleMedium,
     );
   }
 
-  Widget buildCardImage(BuildContext context, int index) {
+  Widget buildCardImage(BuildContext context, Anime anime) {
     return Hero(
-      tag: animeList[index].malId,
+      tag: anime.malId,
       child: Container(
         alignment: Alignment.center,
         margin: const EdgeInsets.symmetric(vertical: 2),
@@ -166,8 +230,7 @@ class _AnimeListState extends State<AnimeList> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
           image: DecorationImage(
-            image: CachedNetworkImageProvider(
-                animeList[index].images.jpg.imageUrl),
+            image: CachedNetworkImageProvider(anime.images.jpg.imageUrl),
             fit: BoxFit.fill,
           ),
         ),

@@ -6,8 +6,13 @@ part 'api_service.chopper.dart';
 abstract class ApiService extends ChopperService {
   @Get(path: '/top/anime')
   Future<Response> getAnimeList(
-    @Query("page") int page,
-    @Query("limit") int limit,
+    @Query("page") int page, {
+    @Query("limit") int limit = 20,
+  });
+
+  @Get(path: '/anime/{id}/characters')
+  Future<Response> getCharacters(
+    @Path("id") int id,
   );
 
   static ApiService create() {

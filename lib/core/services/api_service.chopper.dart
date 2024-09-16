@@ -18,9 +18,9 @@ class _$ApiService extends ApiService {
 
   @override
   Future<Response<dynamic>> getAnimeList(
-    int page,
-    int limit,
-  ) {
+    int page, {
+    int limit = 20,
+  }) {
     final Uri $url = Uri.parse('/top/anime');
     final Map<String, dynamic> $params = <String, dynamic>{
       'page': page,
@@ -31,6 +31,17 @@ class _$ApiService extends ApiService {
       $url,
       client.baseUrl,
       parameters: $params,
+    );
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> getCharacters(int id) {
+    final Uri $url = Uri.parse('/anime/${id}/characters');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
     );
     return client.send<dynamic, dynamic>($request);
   }
