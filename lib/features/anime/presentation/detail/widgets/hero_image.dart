@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
 
@@ -23,7 +22,7 @@ class HeroImage extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
           image: DecorationImage(
-            image: CachedNetworkImageProvider(imageUrl),
+            image: NetworkImage(imageUrl),
             fit: BoxFit.fill,
           ),
         ),

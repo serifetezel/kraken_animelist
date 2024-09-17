@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kraken_animelist/features/anime/data/model/list/anime.dart';
 import 'package:kraken_animelist/features/anime/presentation/list/cubit/anime_cubit.dart';
@@ -18,11 +19,20 @@ class AnimeList extends StatefulWidget {
 }
 
 class _AnimeListState extends State<AnimeList> {
+  late MethodChannel channel;
   final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
-    context.read<AnimeCubit>().getAnimeList();
+    channel = const MethodChannel('com.example/anime');
+
+    channel.setMethodCallHandler((MethodCall call) async {
+      if (call.method == 'fetchAnimeList') {
+        fetchAnimeList();
+      }
+    });
+
+    callNativeFetchAnimeList();
     scrollController.addListener(_loadMoreData);
     super.initState();
   }
@@ -30,7 +40,7 @@ class _AnimeListState extends State<AnimeList> {
   void _loadMoreData() {
     if (scrollController.position.atEdge &&
         scrollController.position.pixels != 0) {
-      context.read<AnimeCubit>().getAnimeList();
+      callNativeFetchAnimeList();
     }
   }
 
@@ -38,6 +48,14 @@ class _AnimeListState extends State<AnimeList> {
   void dispose() {
     scrollController.dispose();
     super.dispose();
+  }
+
+  void callNativeFetchAnimeList() async {
+    channel.invokeMethod('fetchAnimeList');
+  }
+
+  void fetchAnimeList() {
+    context.read<AnimeCubit>().getAnimeList();
   }
 
   @override
