@@ -1,15 +1,14 @@
 import 'dart:async';
 
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_skeleton_ui/flutter_skeleton_ui.dart';
-import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
 import 'package:kraken_animelist/features/anime/data/model/list/anime.dart';
-import 'package:kraken_animelist/features/anime/presentation/detail/anime_detail.dart';
 import 'package:kraken_animelist/features/anime/presentation/list/cubit/anime_cubit.dart';
+import 'package:kraken_animelist/features/anime/presentation/list/widgets/all_animes_listed.dart';
+import 'package:kraken_animelist/features/anime/presentation/list/widgets/anime_card.dart';
+import 'package:kraken_animelist/features/anime/presentation/list/widgets/list_app_bar.dart';
+import 'package:kraken_animelist/features/anime/presentation/list/widgets/list_view_skeleton.dart';
+import 'package:kraken_animelist/features/anime/presentation/list/widgets/pagination_loading.dart';
 
 class AnimeList extends StatefulWidget {
   const AnimeList({super.key});
@@ -45,7 +44,7 @@ class _AnimeListState extends State<AnimeList> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: appBar(),
+      appBar: const ListAppBar(),
       body: SafeArea(
         top: true,
         child: BlocConsumer<AnimeCubit, AnimeState>(
@@ -53,7 +52,7 @@ class _AnimeListState extends State<AnimeList> {
           builder: (BuildContext context, Object? state) {
             if (state is AnimeInitial ||
                 (state is AnimeLoading && state.isFirstFetch)) {
-              return skeletonListViewLoader();
+              return ListViewSkeleton(scrollController: scrollController);
             }
 
             List<Anime> animes = [];
@@ -76,7 +75,7 @@ class _AnimeListState extends State<AnimeList> {
               shrinkWrap: true,
               itemBuilder: (context, index) {
                 if (index < animes.length) {
-                  return animeCard(context, animes[index]);
+                  return AnimeCard(anime: animes[index]);
                 } else {
                   Timer(const Duration(milliseconds: 30), () {
                     scrollController
@@ -84,213 +83,14 @@ class _AnimeListState extends State<AnimeList> {
                   });
 
                   return isLastPage
-                      ? allAnimesListed()
-                      : const Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 10,
-                          ),
-                          child: Center(
-                            child: SizedBox(
-                              height: 30,
-                              width: 30,
-                              child: CupertinoActivityIndicator(),
-                            ),
-                          ),
-                        );
+                      ? const AllAnimesListed()
+                      : const PaginationLoading();
                 }
               },
             );
           },
         ),
       ),
-    );
-  }
-
-  ListView skeletonListViewLoader() {
-    return ListView.builder(
-      controller: scrollController,
-      itemCount: 10,
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
-      itemBuilder: (context, index) {
-        return Card(
-          elevation: 1.5,
-          margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 8),
-          color: Colors.white,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SkeletonAvatar(
-                style: SkeletonAvatarStyle(
-                  shape: BoxShape.rectangle,
-                  height: context.calculateHeight(7),
-                  width: context.calculateWidth(5),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SkeletonLine(
-                        style: SkeletonLineStyle(height: 12),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          SkeletonLine(
-                            style: SkeletonLineStyle(height: 12, width: 50),
-                          ),
-                          SkeletonLine(
-                            style: SkeletonLineStyle(height: 12, width: 50),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Align allAnimesListed() {
-    return Align(
-      alignment: Alignment.center,
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        margin: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade200,
-                offset: const Offset(0.0, 1.0),
-                blurRadius: 4.0,
-              ),
-            ],
-            color: Colors.white,
-            border: Border.all(width: .5, color: Colors.grey),
-            borderRadius: const BorderRadius.all(Radius.circular(10))),
-        child: const Text('All animes are listed'),
-      ),
-    );
-  }
-
-  SizedBox animeCard(BuildContext context, Anime anime) {
-    return SizedBox(
-      height: context.calculateHeight(7),
-      width: context.calculateWidth(1),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AnimeDetail(anime: anime),
-            ),
-          );
-        },
-        child: Card(
-          elevation: 1.5,
-          margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 8),
-          color: Colors.white,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              buildCardImage(context, anime),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      buildCardTitle(context, anime),
-                      buildScoreEpisodes(anime),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Padding buildScoreEpisodes(Anime anime) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          buildScore(anime),
-          Text(
-            'Episodes: ${anime.episodes}',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Row buildScore(Anime anime) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.star,
-          color: Colors.amber,
-        ),
-        Text(
-          '${anime.score} / 10',
-          style: Theme.of(context).textTheme.titleSmall,
-        )
-      ],
-    );
-  }
-
-  AutoSizeText buildCardTitle(BuildContext context, Anime anime) {
-    return AutoSizeText(
-      anime.title,
-      maxLines: 2,
-      style: Theme.of(context).textTheme.titleMedium,
-    );
-  }
-
-  Widget buildCardImage(BuildContext context, Anime anime) {
-    return Hero(
-      tag: anime.malId,
-      child: Container(
-        alignment: Alignment.center,
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        width: context.calculateWidth(5),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          image: DecorationImage(
-            image: CachedNetworkImageProvider(anime.images.jpg.imageUrl),
-            fit: BoxFit.fill,
-          ),
-        ),
-      ),
-    );
-  }
-
-  AppBar appBar() {
-    return AppBar(
-      elevation: 0.0,
-      foregroundColor: Colors.blueGrey,
-      backgroundColor: Colors.white,
-      centerTitle: true,
-      title: const Text('Kraken Anime List'),
     );
   }
 }

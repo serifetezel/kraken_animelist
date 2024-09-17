@@ -1,12 +1,16 @@
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_skeleton_ui/flutter_skeleton_ui.dart';
 import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
 import 'package:kraken_animelist/features/anime/data/model/list/anime.dart';
-import 'package:kraken_animelist/features/anime/data/model/list/genre.dart';
 import 'package:kraken_animelist/features/anime/presentation/detail/cubit/detail_cubit.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/widgets/character_item.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/widgets/detail_anime_title.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/widgets/detail_app_bar.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/widgets/genre_list.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/widgets/grid_view_skeleton.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/widgets/hero_image.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/widgets/synopsis.dart';
+import 'package:kraken_animelist/features/anime/presentation/widgets/score_episodes.dart';
 
 class AnimeDetail extends StatefulWidget {
   final Anime anime;
@@ -20,11 +24,14 @@ class AnimeDetail extends StatefulWidget {
 }
 
 class _AnimeDetailState extends State<AnimeDetail> {
-  int maxLines = 3;
+  late String imageUrl;
 
   @override
   void initState() {
     context.read<DetailCubit>().getCharacterList(widget.anime.malId);
+    imageUrl = widget.anime.images.jpg.largeImageUrl != null
+        ? widget.anime.images.jpg.largeImageUrl!
+        : widget.anime.images.jpg.imageUrl;
     super.initState();
   }
 
@@ -32,11 +39,7 @@ class _AnimeDetailState extends State<AnimeDetail> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.blueGrey,
-        elevation: 0.0,
-      ),
+      appBar: const DetailAppBar(),
       body: SafeArea(
         top: true,
         child: Padding(
@@ -46,136 +49,21 @@ class _AnimeDetailState extends State<AnimeDetail> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                buildImage(widget.anime),
-                buildTitle(widget.anime),
-                buildScoreEpisodes(widget.anime),
-                buildGenres(widget.anime.genres),
-                buildSynopsis(widget.anime.synopsis),
+                HeroImage(malId: widget.anime.malId, imageUrl: imageUrl),
+                DetailAnimeTitle(title: widget.anime.title),
+                ScoreEpisodes(
+                  episodes: widget.anime.episodes,
+                  score: widget.anime.score,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  textStyle: Theme.of(context).textTheme.titleMedium,
+                ),
+                GenreList(genres: widget.anime.genres),
+                Synopsis(synopsis: widget.anime.synopsis),
                 buildCharcterList()
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget buildImage(Anime anime) {
-    String imageUrl = anime.images.jpg.largeImageUrl != null
-        ? anime.images.jpg.largeImageUrl!
-        : anime.images.jpg.imageUrl;
-    return Hero(
-      tag: anime.malId,
-      child: Container(
-        alignment: Alignment.center,
-        margin: const EdgeInsets.only(bottom: 10),
-        height: context.calculateHeight(4),
-        width: context.calculateWidth(2),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          image: DecorationImage(
-            image: CachedNetworkImageProvider(imageUrl),
-            fit: BoxFit.fill,
-          ),
-        ),
-      ),
-    );
-  }
-
-  AutoSizeText buildTitle(Anime anime) {
-    return AutoSizeText(
-      anime.title,
-      maxLines: 2,
-      style: Theme.of(context).textTheme.titleLarge,
-    );
-  }
-
-  Widget buildScoreEpisodes(Anime anime) {
-    return anime.score == null
-        ? const SizedBox()
-        : Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                buildScore(anime.score!),
-                Text(
-                  'Episodes: ${anime.episodes}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-          );
-  }
-
-  Row buildScore(double score) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.star,
-          color: Colors.amber,
-        ),
-        Text(
-          '$score / 10',
-          style: Theme.of(context).textTheme.titleMedium,
-        )
-      ],
-    );
-  }
-
-  Widget buildGenres(List<Genre> genres) {
-    return SizedBox(
-      width: context.calculateWidth(1),
-      height: context.calculateHeight(16),
-      child: Center(
-        child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            itemCount: genres.length,
-            itemBuilder: (context, index) {
-              return Container(
-                decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    border: Border.all(
-                      color: Colors.blueGrey,
-                    ),
-                    borderRadius: BorderRadius.circular(8)),
-                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                padding: const EdgeInsets.all(5),
-                child: Text(genres[index].name),
-              );
-            }),
-      ),
-    );
-  }
-
-  Widget buildSynopsis(String synopsis) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Column(
-        children: [
-          Text(
-            synopsis,
-            maxLines: maxLines,
-            overflow: TextOverflow.ellipsis,
-          ),
-          synopsis.isEmpty
-              ? const SizedBox()
-              : InkWell(
-                  child: Text(
-                    maxLines == 3 ? 'Show More...' : 'Show Less...',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  onTap: () {
-                    setState(() {
-                      maxLines = maxLines == 3 ? 100 : 3;
-                    });
-                  },
-                ),
-        ],
       ),
     );
   }
@@ -200,7 +88,7 @@ class _AnimeDetailState extends State<AnimeDetail> {
             listener: (BuildContext context, state) {},
             builder: (BuildContext context, Object? state) {
               if (state is DetailInitial || state is DetailLoading) {
-                return skeletonGridViewLoader();
+                return const GridViewSkeleton();
               } else if (state is DetailLoaded) {
                 return GridView.builder(
                   primary: true,
@@ -212,29 +100,7 @@ class _AnimeDetailState extends State<AnimeDetail> {
                     mainAxisSpacing: 20.0,
                   ),
                   itemBuilder: (BuildContext context, int index) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        CircleAvatar(
-                          radius: 40.0,
-                          backgroundImage: CachedNetworkImageProvider(
-                            state.characterList[index].images.jpg.imageUrl,
-                          ),
-                          backgroundColor: Colors.transparent,
-                        ),
-                        AutoSizeText(
-                          state.characterList[index].name,
-                          maxFontSize: 15,
-                          textAlign: TextAlign.center,
-                          minFontSize: 10,
-                          maxLines: 2,
-                          style: const TextStyle(
-                            color: Colors.blueGrey,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    );
+                    return CharacterItem(character: state.characterList[index]);
                   },
                 );
               } else {
@@ -244,33 +110,6 @@ class _AnimeDetailState extends State<AnimeDetail> {
           ),
         ),
       ],
-    );
-  }
-
-  GridView skeletonGridViewLoader() {
-    return GridView.builder(
-      primary: true,
-      shrinkWrap: true,
-      itemCount: 12,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 10.0,
-        mainAxisSpacing: 20.0,
-      ),
-      itemBuilder: (BuildContext context, int index) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: const [
-            SkeletonAvatar(
-              style: SkeletonAvatarStyle(
-                  shape: BoxShape.circle, width: 90, height: 90),
-            ),
-            SkeletonLine(
-              style: SkeletonLineStyle(height: 12, width: double.infinity),
-            )
-          ],
-        );
-      },
     );
   }
 }

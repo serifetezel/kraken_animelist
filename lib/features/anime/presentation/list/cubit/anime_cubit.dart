@@ -8,7 +8,7 @@ class AnimeCubit extends Cubit<AnimeState> {
   final chopper = ApiService.create();
   AnimeCubit() : super(AnimeInitial());
 
-  int page = 1371;
+  int page = 1;
 
   void getAnimeList() async {
     if (state is AnimeLoading) return;
