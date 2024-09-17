@@ -1,4 +1,4 @@
-import 'package:kraken_animelist/features/anime_detail/data/models/images.dart';
+import 'images.dart';
 
 class Character {
   final int malId;

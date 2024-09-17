@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_skeleton_ui/flutter_skeleton_ui.dart';
 import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
-import 'package:kraken_animelist/features/anime_detail/presentations/cubit/detail_cubit.dart';
-
-import '../../../anime_list/data/models/anime.dart';
-import '../../../anime_list/data/models/genre.dart';
+import 'package:kraken_animelist/features/anime/data/model/list/anime.dart';
+import 'package:kraken_animelist/features/anime/data/model/list/genre.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/cubit/detail_cubit.dart';
 
 class AnimeDetail extends StatefulWidget {
   final Anime anime;

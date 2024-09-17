@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kraken_animelist/core/services/api_service.dart';
-import 'package:kraken_animelist/features/anime_detail/data/models/character.dart';
+import 'package:kraken_animelist/features/anime/data/model/detail/character.dart';
 
 part 'detail_state.dart';
 

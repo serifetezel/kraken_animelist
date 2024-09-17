@@ -7,10 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_skeleton_ui/flutter_skeleton_ui.dart';
 import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
-import 'package:kraken_animelist/features/anime_detail/presentations/screens/anime.detail.dart';
-import 'package:kraken_animelist/features/anime_list/presentation/cubit/anime_cubit.dart';
-
-import '../../data/models/anime.dart';
+import 'package:kraken_animelist/features/anime/data/model/list/anime.dart';
+import 'package:kraken_animelist/features/anime/presentation/detail/anime_detail.dart';
+import 'package:kraken_animelist/features/anime/presentation/list/cubit/anime_cubit.dart';
 
 class AnimeList extends StatefulWidget {
   const AnimeList({super.key});

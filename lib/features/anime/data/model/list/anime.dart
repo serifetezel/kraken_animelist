@@ -1,5 +1,5 @@
-import 'package:kraken_animelist/features/anime_list/data/models/genre.dart';
-import 'package:kraken_animelist/features/anime_list/data/models/images.dart';
+import 'genre.dart';
+import 'images.dart';
 
 class Anime {
   final int malId;

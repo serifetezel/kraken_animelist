@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kraken_animelist/core/services/api_service.dart';
-
-import '../../data/models/anime.dart';
+import 'package:kraken_animelist/features/anime/data/model/list/anime.dart';
 
 part 'anime_state.dart';
 
@@ -9,7 +8,7 @@ class AnimeCubit extends Cubit<AnimeState> {
   final chopper = ApiService.create();
   AnimeCubit() : super(AnimeInitial());
 
-  int page = 1;
+  int page = 1371;
 
   void getAnimeList() async {
     if (state is AnimeLoading) return;
