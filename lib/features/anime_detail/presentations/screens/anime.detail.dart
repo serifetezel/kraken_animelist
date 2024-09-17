@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_skeleton_ui/flutter_skeleton_ui.dart';
 import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
 import 'package:kraken_animelist/features/anime_detail/presentations/cubit/detail_cubit.dart';
 
@@ -200,13 +201,7 @@ class _AnimeDetailState extends State<AnimeDetail> {
             listener: (BuildContext context, state) {},
             builder: (BuildContext context, Object? state) {
               if (state is DetailInitial || state is DetailLoading) {
-                return const Center(
-                  child: SizedBox(
-                    height: 50,
-                    width: 50,
-                    child: CircularProgressIndicator(),
-                  ),
-                );
+                return skeletonGridViewLoader();
               } else if (state is DetailLoaded) {
                 return GridView.builder(
                   primary: true,
@@ -250,6 +245,33 @@ class _AnimeDetailState extends State<AnimeDetail> {
           ),
         ),
       ],
+    );
+  }
+
+  GridView skeletonGridViewLoader() {
+    return GridView.builder(
+      primary: true,
+      shrinkWrap: true,
+      itemCount: 12,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 10.0,
+        mainAxisSpacing: 20.0,
+      ),
+      itemBuilder: (BuildContext context, int index) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: const [
+            SkeletonAvatar(
+              style: SkeletonAvatarStyle(
+                  shape: BoxShape.circle, width: 90, height: 90),
+            ),
+            SkeletonLine(
+              style: SkeletonLineStyle(height: 12, width: double.infinity),
+            )
+          ],
+        );
+      },
     );
   }
 }

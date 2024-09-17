@@ -318,6 +318,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.1"
+  flutter_skeleton_ui:
+    dependency: "direct main"
+    description:
+      name: flutter_skeleton_ui
+      sha256: "2585c4af785dbdf38be3d8489c80e5a42798b720a4e9524cda05eb762abef39b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.6"
   flutter_test:
     dependency: "direct dev"
     description: flutter
