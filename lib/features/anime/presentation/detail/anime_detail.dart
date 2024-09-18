@@ -42,6 +42,7 @@ class _AnimeDetailState extends State<AnimeDetail> {
       appBar: const DetailAppBar(),
       body: SafeArea(
         top: true,
+        bottom: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: SingleChildScrollView(

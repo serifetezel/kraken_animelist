@@ -26,7 +26,9 @@ class _AnimeListState extends State<AnimeList> {
   void initState() {
     channel = const MethodChannel('com.example/anime');
 
+    // android ve ya ios tarafından gelecek çağrıları dinliyor
     channel.setMethodCallHandler((MethodCall call) async {
+      // eğer gelen çağrıda çağırılan fonksiyon fetchAnimeList ise çalışıyor
       if (call.method == 'fetchAnimeList') {
         fetchAnimeList();
       }
@@ -51,6 +53,7 @@ class _AnimeListState extends State<AnimeList> {
   }
 
   void callNativeFetchAnimeList() async {
+    // android ve ya ios tarafındaki fetchAnimeList methodu çağırılıyor.
     channel.invokeMethod('fetchAnimeList');
   }
 
@@ -65,6 +68,7 @@ class _AnimeListState extends State<AnimeList> {
       appBar: const ListAppBar(),
       body: SafeArea(
         top: true,
+        bottom: false,
         child: BlocConsumer<AnimeCubit, AnimeState>(
           listener: (BuildContext context, state) {},
           builder: (BuildContext context, Object? state) {
@@ -74,12 +78,10 @@ class _AnimeListState extends State<AnimeList> {
             }
 
             List<Anime> animes = [];
-            bool isLoading = false;
             bool isLastPage = false;
 
             if (state is AnimeLoading) {
               animes = state.oldAnimes;
-              isLoading = true;
               isLastPage = state.isLastPage;
             } else if (state is AnimeLoaded) {
               animes = state.animes;
@@ -88,7 +90,7 @@ class _AnimeListState extends State<AnimeList> {
 
             return ListView.builder(
               controller: scrollController,
-              itemCount: animes.length + (isLoading || isLastPage ? 1 : 0),
+              itemCount: animes.length + 1,
               padding: EdgeInsets.zero,
               shrinkWrap: true,
               itemBuilder: (context, index) {

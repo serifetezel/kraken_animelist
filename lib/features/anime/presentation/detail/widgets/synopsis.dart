@@ -20,6 +20,7 @@ class _SynopsisState extends State<Synopsis> {
           Text(
             widget.synopsis,
             maxLines: maxLines,
+            textAlign: TextAlign.justify,
             overflow: TextOverflow.ellipsis,
           ),
           widget.synopsis.isEmpty

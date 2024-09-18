@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:kraken_animelist/core/extensions/media_query_extension.dart';
 import 'package:kraken_animelist/features/anime/data/model/detail/character.dart';
 
 class CharacterItem extends StatelessWidget {
@@ -15,7 +16,7 @@ class CharacterItem extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         CircleAvatar(
-          radius: 40.0,
+          radius: context.calculateWidth(10),
           backgroundImage: NetworkImage(
             character.images.jpg.imageUrl,
           ),
@@ -24,6 +25,7 @@ class CharacterItem extends StatelessWidget {
         AutoSizeText(
           character.name,
           maxFontSize: 15,
+          overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           minFontSize: 10,
           maxLines: 2,

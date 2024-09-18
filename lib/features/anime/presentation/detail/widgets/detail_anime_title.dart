@@ -10,6 +10,7 @@ class DetailAnimeTitle extends StatelessWidget {
     return AutoSizeText(
       title,
       maxLines: 2,
+      textAlign: TextAlign.center,
       style: Theme.of(context).textTheme.titleLarge,
     );
   }
